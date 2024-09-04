@@ -13,10 +13,16 @@ public class MainPage {
 
     @FindBy(css = "nav li.mdc-menu-surface--anchor a")
     private WebElement usernameLinkInNavBar;
+
     @FindBy(id = "create-btn")
     private WebElement createGroupButton;
-    @FindBy(xpath = "//form//spam[contains(text(), 'Group name')]/following-sibling::input")
+
+    @FindBy(xpath = "//form//span[contains(text(), 'Fist Name')]/following-sibling::input")
     private WebElement groupNameField;
+
+    @FindBy(xpath = "//form//span[contains(text(), 'Login')]/following-sibling::input")
+    private WebElement groupLoginField;
+
     @FindBy(css = "form div.submit button")
     private WebElement submitButtonOnModalWindow;
 
@@ -26,13 +32,14 @@ public class MainPage {
     }
 
     public WebElement waitAndGetGroupTitleByText(String title) {
-        String xpath = String.format("//table[@aria-label='Tutors list']/tbody//td[text()='%s']", title);
+        String xpath = String.format("//table[@aria-label='Dummies list']/tbody//td[text()='%s']", title);
         return wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(xpath)));
     }
 
     public void createGroup(String groupName) {
         wait.until(ExpectedConditions.visibilityOf(createGroupButton)).click();
         wait.until(ExpectedConditions.visibilityOf(groupNameField)).sendKeys((groupName));
+        wait.until(ExpectedConditions.visibilityOf(groupLoginField)).sendKeys((groupName));
         submitButtonOnModalWindow.click();
         waitAndGetGroupTitleByText(groupName);
     }
