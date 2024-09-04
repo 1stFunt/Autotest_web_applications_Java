@@ -15,12 +15,12 @@ public class GroupTableRow {
         this.root = root;
     }
 
-    // Получаем имя группы
+    // Для получения имени группы в строке
     public String getTitle() {
         return root.findElement(By.xpath("./td[2]")).getText();
     }
 
-    // Получаем статус группы
+    // Для получения статуса группы в строке
     public String getStatus() {
         return root.findElement(By.xpath("./td[4]")).getText();
     }

@@ -32,7 +32,7 @@ public class GeekBrainsStandTests {
     public static void setupClass() {
         // Путь до драйвера
         System.setProperty("webdriver.chrome.driver", "src/test/resources/chromedriver.exe");
-        // В переменных окружения логин и пароль geekbrains_password=PASS; geekbrains_username=USER
+        // В переменных окружения логин и пароль geekbrains_password=PASS, geekbrains_username=USER
         USERNAME = System.getProperty("geekbrains_username", System.getenv("geekbrains_username"));
         PASSWORD = System.getProperty("geekbrains_password", System.getenv("geekbrains_password"));
     }

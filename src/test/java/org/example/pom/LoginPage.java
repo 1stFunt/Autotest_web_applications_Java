@@ -25,7 +25,7 @@ public class LoginPage {
         this.wait = wait;
     }
 
-    // Метод для авторизации
+    // Авторизация
     public void login(String username, String password) {
         typeUsernameInField(username);
         typePasswordInField(password);
