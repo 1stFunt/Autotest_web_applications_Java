@@ -1,60 +1,56 @@
 package org.example.pom.elements;
 
-import org.openqa.selenium.By;
-import org.openqa.selenium.NoSuchElementException;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.support.ui.FluentWait;
-import org.openqa.selenium.support.ui.Wait;
+import com.codeborne.selenide.SelenideElement;
 
-import java.time.Duration;
+import static com.codeborne.selenide.Condition.*;
 
 public class GroupTableRow {
-    private final WebElement root;
+    private final SelenideElement root;
 
-    public GroupTableRow(WebElement root) {
+    public GroupTableRow(SelenideElement root) {
         this.root = root;
     }
 
     // Для получения имени группы в строке
     public String getTitle() {
-        return root.findElement(By.xpath("./td[2]")).getText();
+        return root.$x("./td[2]").shouldBe(visible).getText();
     }
 
     // Для получения статуса группы в строке
     public String getStatus() {
-        return root.findElement(By.xpath("./td[4]")).getText();
+        return root.$x("./td[4]").shouldBe(visible).getText();
     }
 
+    // Для получения ID группы в строке
     public String getId() {
-        return root.findElement(By.xpath("./td[1]")).getText();
+        return root.$x("./td[1]").shouldBe(visible).getText();
     }
 
+    // Клик на иконку с ключом
     public void clickKeyIcon() {
-        root.findElement(By.xpath("./td/button[text()='key']")).click();
+        root.$x(".//td/button[text()='key']").shouldBe(visible).click();
     }
 
+    // Клик на иконку редактирования
     public void clickEditIcon() {
-        root.findElement(By.xpath("./td/button[text()='edit']")).click();
+        root.$x(".//td/button[text()='edit']").shouldBe(visible).click();
     }
 
+    // Клик на иконку корзины
     public void clickTrashIcon() {
-        root.findElement(By.xpath(".//td/button[text()='delete']")).click();
-        ((Wait<WebElement>) new FluentWait<>(root)
-                .withTimeout(Duration.ofSeconds(30))
-                .pollingEvery(Duration.ofSeconds(5))
-                .ignoring(NoSuchElementException.class))
-                .until(root -> root.findElement(By.xpath(".//td/button[text()='restore_from_trash']")));
+        root.$x(".//td/button[text()='delete']").shouldBe(visible).click();
+        // Ожидание появления иконки восстановления
+        root.$x(".//td/button[text()='restore_from_trash']").shouldBe(visible);
     }
 
+    // Клик на иконку восстановления из корзины
     public void clickRestoreFromTrashIcon() {
-        root.findElement(By.xpath("./td/button[text()='restore_from_trash']")).click();
-        ((Wait<WebElement>) new FluentWait<>(root)
-                .withTimeout(Duration.ofSeconds(30))
-                .pollingEvery(Duration.ofSeconds(5))
-                .ignoring(NoSuchElementException.class))
-                .until(root -> root.findElement(By.xpath("./td/button[text()='delete']")));
+        root.$x(".//td/button[text()='restore_from_trash']").shouldBe(visible).click();
+        // Ожидание появления иконки удаления
+        root.$x(".//td/button[text()='delete']").shouldBe(visible);
     }
 }
+
 
 
 

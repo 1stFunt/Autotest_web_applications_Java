@@ -1,63 +1,54 @@
 package org.example.pom;
 
+import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.SelenideElement;
 import org.example.pom.elements.GroupTableRow;
-import org.openqa.selenium.By;
-import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
-import org.openqa.selenium.support.PageFactory;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
 
-import java.util.List;
+import static com.codeborne.selenide.CollectionCondition.sizeGreaterThan;
+import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Selenide.$$x;
+import static com.codeborne.selenide.Selenide.$x;
 
 public class MainPage {
 
-    private final WebDriverWait wait;
-
     @FindBy(css = "nav li.mdc-menu-surface--anchor a")
-    private WebElement usernameLinkInNavBar;
+    private SelenideElement usernameLinkInNavBar;
+    @FindBy(css = "nav li.mdc-menu-surface--anchor div li")
+    private SelenideElement profileLinkInNavBar;
     @FindBy(css = "table tbody tr")
-    private WebElement tableRow;
+    private SelenideElement tableRow;
     @FindBy(id = "create-btn")
-    private WebElement createDummyButton;
+    private SelenideElement createDummyButton;
     @FindBy(xpath = "//form//span[contains(text(), 'Fist Name')]/following-sibling::input")
-    private WebElement dummyFirstNameField;
+    private SelenideElement dummyFirstNameField;
     @FindBy(xpath = "//form//span[contains(text(), 'Last Name')]/following-sibling::input")
-    private WebElement dummyLastNameField;
+    private SelenideElement dummyLastNameField;
     @FindBy(xpath = "//form//span[contains(text(), 'Login')]/following-sibling::input")
-    private WebElement loginField;
+    private SelenideElement loginField;
     @FindBy(css = "form div.submit button")
-    private WebElement submitButtonOnModalWindow;
+    private SelenideElement submitButtonOnModalWindow;
     @FindBy(xpath = "//span[text()='Creating Dummy']//ancestor::div[contains(@class, 'form-modal-header')]//button")
-    private WebElement closeCreateDummyIcon;
+    private SelenideElement closeCreateDummyIcon;
     @FindBy(xpath = "//span[contains(text(), 'Editing Dummy')]//ancestor::div[contains(@class, 'form-modal-header')]//button")
-    private WebElement closeEditingDummyIcon;
+    private SelenideElement closeEditingDummyIcon;
     // Добавление списков элементов (ряды в таблице)
-    @FindBy(xpath = "//table[@aria-label='Dummies list']/tbody/tr")
-    private List<WebElement> rowsInDummyTable;
+    private final ElementsCollection rowsInDummyTable = $$x("//table[@aria-label='Dummies list']/tbody/tr");
     @FindBy(css = "div.mdc-dialog.mdc-dialog--open h2")
-    private WebElement popupHeader;
+    private SelenideElement popupHeader;
     @FindBy(css = "div.mdc-dialog.mdc-dialog--open h2 + div")
-    private WebElement dummyCredentialsPopupContent;
+    private SelenideElement dummyCredentialsPopupContent;
     @FindBy(xpath = "//div[@class='mdc-linear-progress mdc-linear-progress--indeterminate mdc-data-table__linear-progress mdc-linear-progress--animation-ready']")
-    private WebElement progressBar;
+    private SelenideElement progressBar;
 
-    // Конструктор для инициализации элементов (ленивая инициализация)
-    public MainPage(WebDriver driver, WebDriverWait wait) {
-        this.wait = wait;
-        PageFactory.initElements(driver, this);
-    }
-
-    public WebElement waitAndGetDummyTitleByText(String title) {
-        String xpath = String.format("//table[@aria-label='Dummies list']/tbody//td[text()='%s']", title);
-        return wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(xpath)));
+    public SelenideElement waitAndGetDummyTitleByText(String title) {
+        return $x(String.format("//table[@aria-label='Dummies list']/tbody//td[text()='%s']", title)).shouldBe(visible);
     }
 
     // Метод для получения логина авторизированного пользователя
     public String getUsernameLabelText() {
-        return wait.until(ExpectedConditions.visibilityOf(usernameLinkInNavBar))
-                .getText().replace("\n", " ");
+        return usernameLinkInNavBar.shouldBe(visible).getText().replace("\n", " ");
     }
 
     public void clickTrashIconOnDummyWithName(String name) {
@@ -73,37 +64,36 @@ public class MainPage {
     }
 
     public String getDummyCredentialsPopupHeaderText() {
-        return wait.until(ExpectedConditions.visibilityOf(popupHeader)).getText();
+        return popupHeader.shouldBe(visible).getText();
     }
 
     public String getDummyCredentialsPopupContentText() {
-        return wait.until(ExpectedConditions.visibilityOf(dummyCredentialsPopupContent)).getText();
+        return dummyCredentialsPopupContent.shouldBe(visible).getText();
     }
 
     public void createDummyWithLogin(String dummyName, String login) {
-        wait.until(ExpectedConditions.visibilityOf(tableRow));
-        createDummyButton.click();
-        wait.until(ExpectedConditions.visibilityOf(dummyFirstNameField)).sendKeys(dummyName);
-        wait.until(ExpectedConditions.visibilityOf(loginField)).sendKeys(login);
-        submitButtonOnModalWindow.click();
+        createDummyButton.shouldBe(visible).click();
+        dummyFirstNameField.shouldBe(visible).setValue(dummyName);
+        loginField.shouldBe(visible).setValue(login);
+        submitButtonOnModalWindow.shouldBe(visible).click();
         waitAndGetDummyTitleByText(dummyName);
     }
 
     public void setDummyFirstNameOnPopup(String firstName) {
-        WebElement field = wait.until(ExpectedConditions.visibilityOf(dummyFirstNameField));
+        WebElement field = dummyFirstNameField.shouldBe(visible);
         field.clear();
         field.sendKeys(firstName);
     }
 
     public void setDummyLastNameField(String lastName) {
-        WebElement field = wait.until(ExpectedConditions.visibilityOf(dummyLastNameField));
+        WebElement field = dummyLastNameField.shouldBe(visible);
         field.clear();
         field.sendKeys(lastName);
     }
 
     public void clickSaveOnEditingDummyModalWindow() throws InterruptedException {
-        wait.until(ExpectedConditions.visibilityOf(submitButtonOnModalWindow)).click();
-        wait.until(ExpectedConditions.invisibilityOf(progressBar));
+        submitButtonOnModalWindow.shouldBe(visible).click();
+        progressBar.shouldBe(visible);
         /*
         Использование Sleep - не лучшая практика,
         но иногда если иное решение занимает много времени и стоит больше, то небольшие ожидания имеют смысл.
@@ -113,12 +103,12 @@ public class MainPage {
 
     public void closeEditingDummyModalWindow() {
         closeEditingDummyIcon.click();
-        wait.until(ExpectedConditions.invisibilityOf(closeEditingDummyIcon));
+        closeEditingDummyIcon.shouldBe(visible);
     }
 
     public void closeCreateDummyModalWindow() {
         closeCreateDummyIcon.click();
-        wait.until(ExpectedConditions.invisibilityOf(closeCreateDummyIcon));
+        closeCreateDummyIcon.shouldBe(visible);
     }
 
     public void clickEditIconOnDummyWithName(String name) {
@@ -138,12 +128,12 @@ public class MainPage {
     }
 
     public String getEditingDummyPopupHeaderText() {
-        return wait.until(ExpectedConditions.visibilityOf(popupHeader)).getText();
+        return popupHeader.shouldBe(visible).getText();
     }
 
     // Ищем строку в таблице, используя Stream
     private GroupTableRow getDummyRowByName(String name) {
-        return rowsInDummyTable.stream()
+        return rowsInDummyTable.shouldHave(sizeGreaterThan(0)).stream()
                 .map(GroupTableRow::new)
                 .filter(row -> row.getTitle().equals(name))
                 .findFirst().orElseThrow();
@@ -151,10 +141,18 @@ public class MainPage {
 
     // Ищем по ID
     private GroupTableRow getDummyRowById(String id) {
-        return rowsInDummyTable.stream()
+        return rowsInDummyTable.shouldHave(sizeGreaterThan(0)).stream()
                 .map(GroupTableRow::new)
                 .filter(row -> row.getId().equals(id))
                 .findFirst().orElseThrow();
+    }
+
+    public void clickUsernameLabel() {
+        usernameLinkInNavBar.shouldBe(visible).click();
+    }
+
+    public void clickProfileLink() {
+        profileLinkInNavBar.shouldBe(visible).click();
     }
 }
 

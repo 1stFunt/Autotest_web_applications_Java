@@ -1,29 +1,17 @@
 package org.example.pom;
 
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.support.FindBy;
-import org.openqa.selenium.support.PageFactory;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
+import com.codeborne.selenide.SelenideElement;
+
+import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Selenide.$;
 
 public class LoginPage {
-    private final WebDriverWait wait;
-    // Ищем нужные поля и кнопки
-    @FindBy(css = "form#login input[type='text']")
-    private WebElement usernameField;
-    @FindBy(css = "form#login input[type='password']")
-    private WebElement passwordField;
-    @FindBy(css = "form#login button")
-    private WebElement loginButton;
-    @FindBy(css = "div.error-block")
-    private WebElement errorBlock;
 
-    // Конструктор для инициализации элементов (ленивая инициализация)
-    public LoginPage(WebDriver driver, WebDriverWait wait) {
-        PageFactory.initElements(driver, this);
-        this.wait = wait;
-    }
+    // Ищем нужные поля и кнопки через Selenide
+    private final SelenideElement usernameField = $("form#login input[type='text']");
+    private final SelenideElement passwordField = $("form#login input[type='password']");
+    private final SelenideElement loginButton = $("form#login button");
+    private final SelenideElement errorBlock = $("div.error-block");
 
     // Авторизация
     public void login(String username, String password) {
@@ -32,26 +20,26 @@ public class LoginPage {
         clickLoginButton();
     }
 
-    // Ввод логина
+    // Ввод логина с дополнительной проверкой и очисткой
     public void typeUsernameInField(String username) {
-        wait.until(ExpectedConditions.visibilityOf(usernameField)).sendKeys(username);
+        usernameField.shouldBe(visible).clear(); // Очистка поля перед вводом
+        usernameField.setValue(username);
     }
 
-    // Ввод пароля
+    // Ввод пароля с дополнительной проверкой и очисткой
     public void typePasswordInField(String password) {
-        wait.until(ExpectedConditions.visibilityOf(passwordField)).sendKeys(password);
+        passwordField.shouldBe(visible).clear(); // Очистка поля перед вводом
+        passwordField.setValue(password);
     }
 
     // Клик на кнопку
     public void clickLoginButton() {
-        wait.until(ExpectedConditions.visibilityOf(loginButton)).click();
+        loginButton.shouldBe(visible).click();
     }
 
-    // ДЗ 2.1 Метод для получения текста ошибки
+    // Метод для получения текста ошибки
     public String getErrorBlockText() {
-        return wait.until(ExpectedConditions.visibilityOf(errorBlock))
-                .getText().replace("\n", " ");
+        return errorBlock.shouldBe(visible).getText().replace("\n", " ");
     }
 }
-
 

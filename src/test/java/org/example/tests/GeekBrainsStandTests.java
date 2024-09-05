@@ -1,37 +1,31 @@
 package org.example.tests;
 
-import org.apache.commons.io.FileUtils;
+import com.codeborne.selenide.Selenide;
+import com.codeborne.selenide.WebDriverRunner;
 import org.example.pom.LoginPage;
 import org.example.pom.MainPage;
+import org.example.pom.ProfilePage;
 import org.junit.jupiter.api.*;
 import org.openqa.selenium.OutputType;
-import org.openqa.selenium.TakesScreenshot;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.time.Duration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class GeekBrainsStandTests {
-    private WebDriver driver;
-    private WebDriverWait wait;
     private MainPage mainPage;
     private LoginPage loginPage;
     private static String USERNAME;
     private static String PASSWORD;
+    private ProfilePage profilePage;
 
     @BeforeAll
     public static void setupClass() {
-        // Путь до драйвера
-        System.setProperty("webdriver.chrome.driver", "src/test/resources/chromedriver.exe");
         // В переменных окружения логин и пароль geekbrains_password=PASS, geekbrains_username=USER
         USERNAME = System.getProperty("geekbrains_username", System.getenv("geekbrains_username"));
         PASSWORD = System.getProperty("geekbrains_password", System.getenv("geekbrains_password"));
@@ -39,14 +33,10 @@ public class GeekBrainsStandTests {
 
     @BeforeEach
     public void setupTest() {
-        // Создаём экземпляр драйвера
-        driver = new ChromeDriver();
-        wait = new WebDriverWait(driver, Duration.ofSeconds(5));
-        // Растягиваем окно браузера
-        driver.manage().window().maximize();
-        driver.get("https://test-stand.gb.ru/login");
-        // Объект созданного Page Object для взаимодействия со страницей
-        loginPage = new LoginPage(driver, wait);
+        // Открываем страницу с помощью Selenide
+        Selenide.open("https://test-stand.gb.ru/login");
+        // Инициализация объекта LoginPage
+        loginPage = new LoginPage();
     }
 
     // ДЗ 1. Залогиниться, создать группу и проверить её наличие, сделать скрин
@@ -55,7 +45,7 @@ public class GeekBrainsStandTests {
         // Логин в систему с помощью метода из класса Page Object
         loginPage.login(USERNAME, PASSWORD);
         // Инициализация объекта класса MainPage
-        mainPage = new MainPage(driver, wait);
+        mainPage = Selenide.page(MainPage.class);
         assertTrue(mainPage.getUsernameLabelText().contains(USERNAME));
         // Создание dummy. Даём уникальное имя, чтобы в каждом запуске была проверка нового имени
         long currentTimeMillis = System.currentTimeMillis();
@@ -64,8 +54,7 @@ public class GeekBrainsStandTests {
         // Проверка, что dummy создан и находится в таблице
         assertTrue(mainPage.waitAndGetDummyTitleByText(dummyTestName).isDisplayed());
         // Сохраняем скриншот
-        TakesScreenshot screenshot = (TakesScreenshot) driver;
-        File screenshotFile = screenshot.getScreenshotAs(OutputType.FILE);
+        File screenshotFile = Selenide.screenshot(OutputType.FILE); // Получаем скриншот как файл
         Path destinationPath = Path.of("src/test/resources/screenshot_" + currentTimeMillis + ".png");
         Files.copy(screenshotFile.toPath(), destinationPath, StandardCopyOption.REPLACE_EXISTING);
     }
@@ -75,7 +64,7 @@ public class GeekBrainsStandTests {
     void testArchiveDummyOnMainPage() {
         // Обычный логин + создание dummy
         loginPage.login(USERNAME, PASSWORD);
-        mainPage = new MainPage(driver, wait);
+        mainPage = Selenide.page(MainPage.class);
         assertTrue(mainPage.getUsernameLabelText().contains(USERNAME));
         long currentTimeMillis = System.currentTimeMillis();
         String dummyTestName = "New Dummy " + currentTimeMillis;
@@ -104,7 +93,7 @@ public class GeekBrainsStandTests {
     void testEditingModalWindowAndEditedDummy() throws InterruptedException {
         // Обычный логин + создание dummy + сохранение ID созданной сущности
         loginPage.login(USERNAME, PASSWORD);
-        mainPage = new MainPage(driver, wait);
+        mainPage = Selenide.page(MainPage.class);
         assertTrue(mainPage.getUsernameLabelText().contains(USERNAME));
         long currentTimeMillis = System.currentTimeMillis();
         String dummyTestName = "New Dummy " + currentTimeMillis;
@@ -122,6 +111,7 @@ public class GeekBrainsStandTests {
         mainPage.setDummyLastNameField("LastName");
         mainPage.clickSaveOnEditingDummyModalWindow();
         mainPage.closeEditingDummyModalWindow();
+        Thread.sleep(500);
         // Проверить результат изменения в таблице по ID
         assertEquals("LastName FirstName", mainPage.getNameOfDummyWithId(idOfDummyWithName));
     }
@@ -130,7 +120,7 @@ public class GeekBrainsStandTests {
     void testCredentialsPopupForDummies() {
         // Обычный логин + создание dummy
         loginPage.login(USERNAME, PASSWORD);
-        mainPage = new MainPage(driver, wait);
+        mainPage = Selenide.page(MainPage.class);
         assertTrue(mainPage.getUsernameLabelText().contains(USERNAME));
         long currentTimeMillis = System.currentTimeMillis();
         String dummyTestName = "New Dummy " + currentTimeMillis;
@@ -145,9 +135,50 @@ public class GeekBrainsStandTests {
         assertTrue(mainPage.getDummyCredentialsPopupContentText().contains("PW:"));
     }
 
+    @Test
+    void testFullNameOnProfilePage() {
+        // Логин в систему с помощью метода Page Object
+        loginPage.login(USERNAME, PASSWORD);
+        mainPage = Selenide.page(MainPage.class);
+        assertTrue(mainPage.getUsernameLabelText().contains(USERNAME));
+        // Навигация на Profile page
+        mainPage.clickUsernameLabel();
+        mainPage.clickProfileLink();
+        // Инициализация ProfilePage с помощью Selenide
+        profilePage = Selenide.page(ProfilePage.class);
+        assertEquals("Nochevnoy Sergey", profilePage.getFullNameAdditionalInfo());
+        assertEquals("Nochevnoy Sergey", profilePage.getFullNameInAvatarSection());
+    }
+
+    // ДЗ 4.2. Написать тест на Profile Page
+    @Test
+    void testChangeBirthdayData() throws InterruptedException {
+        // Логин в систему с помощью метода Page Object
+        loginPage.login(USERNAME, PASSWORD);
+        mainPage = Selenide.page(MainPage.class);
+        assertTrue(mainPage.getUsernameLabelText().contains(USERNAME));
+        // Навигация на Profile page
+        mainPage.clickUsernameLabel();
+        mainPage.clickProfileLink();
+        // Инициализация ProfilePage с помощью Selenide
+        profilePage = Selenide.page(ProfilePage.class);
+        // Открыть модальное окно редактирования
+        profilePage.openEditProfileModal();
+        // Изменить значение Birthdate
+        String newBirthdate = "12.12.2022";
+        profilePage.setBirthdate(newBirthdate);
+        // Нажать на кнопку Save и закрыть модальное окно
+        profilePage.saveChanges();
+        // Проверить, что изменения применились в поле Date of Birth в секции Additional Info
+        profilePage.closeButtonModal();
+        Thread.sleep(2000);
+        String updatedBirthdate = profilePage.getBirthdateAdditionalInfo();
+        assertEquals(newBirthdate, updatedBirthdate);
+    }
+
     // Закрываем браузер и драйвер
     @AfterEach
     public void teardown() {
-        driver.quit();
+        WebDriverRunner.closeWebDriver();
     }
 }
